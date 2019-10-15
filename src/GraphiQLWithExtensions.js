@@ -1,15 +1,22 @@
 import React, {Component} from 'react';
 import GraphiQL from 'graphiql';
 import GraphiQLExplorer from 'graphiql-explorer';
+import CodeExporter from 'graphiql-code-exporter';
+import codeExporterDefaultSnippets from 'graphiql-code-exporter/lib/snippets';
 import {buildClientSchema, getIntrospectionQuery, parse} from 'graphql';
+
+import '../index.css';
 
 class GraphiQLWithExtensions extends Component {
   _graphiql: GraphiQL;
   state = {
     schema: null,
-    query: this.props.defaultQuery,
-    explorerIsOpen: false,
+    variables: '',
+    query: this.props.query,
+    explorerIsOpen: this.props.explorerIsOpen,
+    exporterIsOpen: this.props.exporterIsOpen,
     disableExplorer: this.props.disableExplorer,
+    disableExporter: this.props.disableExporter,
   };
 
   componentDidMount() {
@@ -88,19 +95,43 @@ class GraphiQLWithExtensions extends Component {
     el && el.scrollIntoView();
   };
 
-  _handleEditQuery = (query: string): void => this.setState({query});
+  _handleEditQuery = (query: string): void => {
+    if (this.props.onEditQuery) {
+      this.props.onEditQuery(query);
+    }
+    this.setState({query})
+  };
 
   _handleToggleExplorer = () => {
     this.setState({explorerIsOpen: !this.state.explorerIsOpen});
   };
 
-  _handleToggleCodeExporter = () =>
+  _handleToggleExporter = () =>
     this.setState({
-      codeExporterIsOpen: !this.state.codeExporterIsOpen,
+      exporterIsOpen: !this.state.exporterIsOpen,
     });
+
+  _handleEditVariables = (variables: string) => {
+    if (this.props.onEditVariables) {
+      this.props.onEditVariables(query);
+    }
+    this.setState({variables});
+  };
 
   render() {
     const {query, schema} = this.state;
+
+    const codeExporter = this.state.exporterIsOpen ? (
+      <CodeExporter
+        hideCodeExporter={this._handleToggleCodeExporter}
+        snippets={codeExporterDefaultSnippets}
+        serverUrl={this.props.serverUrl}
+        headers={{}}
+        query={query}
+        // Optional if you want to use a custom theme
+        codeMirrorTheme="neo"
+      />
+    ) : null;
 
     return (
       <div className="graphiql-container">
@@ -137,8 +168,16 @@ class GraphiQLWithExtensions extends Component {
                 title="Toggle Explorer"
               />
             )}
+            {this.props.disableExporter ? null : (
+              <GraphiQL.Button
+                onClick={this._handleToggleExporter}
+                label="Exporter"
+                title="Toggle Exporter"
+              />
+            )}
           </GraphiQL.Toolbar>
         </GraphiQL>
+        {codeExporter}
       </div>
     );
   }
