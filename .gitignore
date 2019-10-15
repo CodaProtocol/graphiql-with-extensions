@@ -22,7 +22,8 @@ yarn-error.log*
 
 dist/
 /graphiqlWithExtensions.js
-/graphiqlWithExtensions.min.js
+# Temporarily check this in
+# /graphiqlWithExtensions.min.js
 
 .merlin
 lib/
